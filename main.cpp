@@ -51,6 +51,8 @@ struct compare
         {return i.d > j.d;}
 };
 
+void Relax(node i, node j, int distance);
+
 
 int main(int argc, char* argv[])
 {
@@ -110,13 +112,33 @@ int main(int argc, char* argv[])
 	}
 	fclose(file);
 	
-	//Create priority queue
+	//Create priority queue and initialize
 	priority_queue<node, std::vector<node>, compare> Q;
 	for (int i = 1; i <= numberOfNodes; ++i  ) {
 		node v(i,graph[i]);
-		v.d = i;
+		if(i == sourceNode){
+			v.d = 0;
+		}
 		Q.push(v);		
 	}
+	
+	//start linkstate algorithm
+	priority_queue<node, std::vector<node>, compare> S;
+	while(!Q.empty()){
+		node u = Q.top();
+		S.push(u);
+		
+		for (list<node>::iterator iNode = u.adjList.begin(); iNode != u.adjList.end(); ++iNode  )
+		{
+			if(iNode->d > (u.d + iNode->cost))
+			{
+				iNode->d = u.d + iNode->cost;
+				iNode->p = &u;
+			}
+		}
+		Q.pop();
+	}
+	//stop timer
 	
 	
 	//~ for (int i = 1; i <= numberOfNodes; ++i  ) {
@@ -148,11 +170,20 @@ int main(int argc, char* argv[])
 	}
 		
 	std::cout << "There are " << numberOfNodes << " nodes in the graph." << std::endl;
-	//start linkstate algorithm
 	
-	//stop timer
+	
+	
 	
 	//output results
 	
 	return EXIT_SUCCESS;
+}
+
+
+void Relax(node u, node v){
+	if(v.d > (u.d + v.cost))
+	{
+		v.d = u.d + v.cost;
+		v.p = &u;
+	}
 }
