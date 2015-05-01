@@ -39,10 +39,32 @@ void ReadFile();
 	//std::cout << "There are " << numberOfNodes << " nodes in the graph.\n" << std::endl;
 	
 	
-	void Relax(node u, node v){
-	if(v.d > (u.d + v.cost))
-	{
-		v.d = u.d + v.cost;
-		v.p = &u;
-	}
-}
+	//~ while(!Q.empty()){
+		//~ node u = Q.top();
+		//~ printf("Node %u has %d adjacent nodes.  D is %u.\n",u.id, u.adjList.size(), u.d);
+		//~ Q.pop();
+	//~ }
+	
+	//~ while(!Q.empty()){
+		//~ node u = Q.top();
+		//~ S.push_back(u);
+		//~ std::cout << "Pushing node " << u.id << std::endl;
+		
+		//~ for (list<node>::iterator iNode = u.adjList.begin(); iNode != u.adjList.end(); ++iNode  )
+		//~ {
+			//~ //std::cout << "To node" << iNode->destination << " costs " << iNode->cost << std::endl;
+			//~ std::cout << "There is an edge going from " << u.id << " to " << iNode->destination;
+			//~ std::cout << " with a weight of " << iNode->cost << std::endl;
+			//~ if(iNode->d > (u.d + iNode->cost))
+			//~ {				
+				//~ iNode->d = u.d + iNode->cost;
+				//~ iNode->p = u.id;
+				//~ std::cout << "Node-" << iNode->id << " to node-" << iNode->destination << " is now " << iNode->d << " and its predecessor is " 
+						//~ << (iNode->p) << std::endl;				
+			//~ }
+			
+			
+		//~ }
+		
+		//~ Q.pop();
+	//~ }

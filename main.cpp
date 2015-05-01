@@ -9,9 +9,11 @@
 #include <string>			//C++ style strings
 #include <iostream>		//cout, cin
 #include <fstream>			//readfile
+#include <iomanip>		//standard output formatting
 #include <list>
 #include <vector>
 #include <queue>
+#include <ctime>
 
 #define MAXLINEBUF 100
 #define INFINITY 4294967295
@@ -23,37 +25,24 @@ using std::priority_queue;
 struct node 
 {
 	unsigned int id;
-	unsigned int destination;
 	unsigned int cost;
-	list<node> adjList;			//adjacency list
-	unsigned p;		 		     	//predecessor
-	unsigned int d;			//distance	
-	
-	node(int _id, int _destination, int _cost)
+	unsigned int p;
+		
+	node(int _id, int _cost)
 	{
 		id = _id;
-		destination = _destination;
-		cost = _cost;
+		cost = _cost;	
 		p = 0;
-		d = INFINITY;		
-	}  
-	
-	node(int _id, list<node> list){
-		id = _id;
-		adjList = list;
-		p = 0;
-		d = INFINITY;
-	}
+	}  		
 };
 
 struct compare
 {
-    bool operator() ( node i, node j)
-        {return i.d > j.d;}
+    bool operator() (node i, node j)
+        {return i.cost > j.cost;}
 };
 
-void Relax(node i, node j, int distance);
-
+unsigned FindLink(unsigned start, unsigned endIndex, vector<node> S);
 
 int main(int argc, char* argv[])
 {
@@ -73,6 +62,7 @@ int main(int argc, char* argv[])
 	}
 	
 	//start timer
+	clock_t timer = clock();
 	
 	//Read input file
 	FILE *file;
@@ -91,8 +81,9 @@ int main(int argc, char* argv[])
 	fgets(line,MAXLINEBUF, file);
 	numberOfNodes = atoi(line);
 	
-	list<node> graph[numberOfNodes+1];
 	
+	//read the rest of the file and create the graph
+	list<node> graph[numberOfNodes+1];
 	while(fgets(line,MAXLINEBUF, file))
 	{
 		for (int i = 0;  i < strlen(line); ++i) 
@@ -107,66 +98,95 @@ int main(int argc, char* argv[])
 			cost = atoi(next);
 			if((cost != 0) && (cost != INFINITY))
 			{
-				graph[source].push_back(node(source,dest,cost));
-			}			
+				graph[source].push_back(node(dest,cost));
+			}
 		}
 	}
 	fclose(file);
 	
-	//Create priority queue and initialize
-	priority_queue<node, std::vector<node>, compare> Q;
-	for (int i = 1; i <= numberOfNodes; ++i  ) {
-		node v(i,graph[i]);
-		if(i == sourceNode){
-			v.d = 0;
-		}
+	
+	//~ for (int i = 1; i <= numberOfNodes; ++i  ) {
+		//~ for (list<node>::iterator iNode = graph[i].begin(); iNode != graph[i].end(); ++iNode  )
+		//~ {
+			//~ std::cout << "There is an edge going from " << i << " to " << iNode->id;
+			//~ std::cout << " with a weight of " << iNode->cost << std::endl;
+		//~ }
 		
-		Q.push(v);		
+	//~ }
+	//Create priority queue and initialize
+	vector<int> distance(numberOfNodes+1);
+	vector<bool> visited(numberOfNodes + 1);
+	priority_queue<node, vector<node>, compare> Q;
+	
+	for (int i = 1; i <= numberOfNodes; ++i  ) {
+		
+		node v(i,INFINITY);
+		if(i == sourceNode) {
+			distance.at(i)= 0;
+			v.cost = 0;
+			Q.push(v);
+		}else{
+			distance.at(i) = INFINITY;
+		}	
+		
+		visited.at(i) = false;
 	}
 	
 	//start linkstate algorithm
-	//priority_queue<node, std::vector<node>, compare> S;
 	vector<node> S;
-	//~ while(!Q.empty()){
-		//~ node u = Q.top();
-		//~ printf("Node %u has %d adjacent nodes.  D is %u.\n",u.id, u.adjList.size(), u.d);
-		//~ Q.pop();
-	//~ }
-	
 	while(!Q.empty()){
 		node u = Q.top();
-		S.push_back(u);
-		std::cout << "Pushing node " << u.id << std::endl;
-		
-		for (list<node>::iterator iNode = u.adjList.begin(); iNode != u.adjList.end(); ++iNode  )
-		{
-			//std::cout << "To node" << iNode->destination << " costs " << iNode->cost << std::endl;
-			std::cout << "There is an edge going from " << u.id << " to " << iNode->destination;
-			std::cout << " with a weight of " << iNode->cost << std::endl;
-			if(iNode->d > (u.d + iNode->cost))
-			{				
-				iNode->d = u.d + iNode->cost;
-				iNode->p = u.id;
-				std::cout << "Node-" << iNode->id << " to node-" << iNode->destination << " is now " << iNode->d << " and its predecessor is " 
-						<< (iNode->p) << std::endl;				
-			}
-		}
 		Q.pop();
+		if(!visited.at(u.id)){
+			S.push_back(u);
+			visited.at(u.id) = true;
+				
+			for (list<node>::iterator iNode = graph[u.id].begin(); iNode != graph[u.id].end(); ++iNode)
+			{						
+				if(distance[iNode->id] > (u.cost + iNode->cost))
+				{				
+					distance[iNode->id] = u.cost + iNode->cost;
+					node x(iNode->id, distance[iNode->id] );
+					x.p = u.id;
+					Q.push(x);					
+				}
+			}	
+		}			
 	}
+	
+	
+	
 	//stop timer
-	
-	
-	
-	
-	
+	timer = clock() - timer;
+	float elapsedTime = ((float)timer)*1000/CLOCKS_PER_SEC;
 	
 	//output results
-	for(vector<node>::iterator v = S.begin(); v != S.end(); ++v){
-		std::cout << v->id << "->";
-	}
+
+	printf("\n%.3f milliseconds to compute the least-cost path from node %d.\n\n", elapsedTime, sourceNode);
 	
-		std::cout << "\n";
+	std::cout << std::setw(15) << "Destination" << std::setw(15) << "Link" << std::endl;
+	for(int i = 0; i < S.size(); ++i){
+		std::cout << std::setw(15) << S.at(i).id
+				<< std::setw(15) <<  "(" <<  sourceNode << ", " << FindLink(sourceNode, S.at(i).id, S)
+				<< std::endl;
+		printf("Node %u's predecessor is %u.\n",S.at(i).id, S.at(i).p);
+	}
 	
 	return EXIT_SUCCESS;
 }
 
+unsigned FindLink(unsigned start, unsigned endIndex, vector<node> S)
+{
+	unsigned p = INFINITY;
+	unsigned z = INFINITY;
+	
+		for(int i =endIndex; p != start; --i )
+		{
+			p = S[i].p;
+			z = S[i+1].p;
+		}
+		
+		
+	return z;
+	
+}
