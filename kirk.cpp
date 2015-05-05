@@ -16,7 +16,6 @@
 #include <queue>
 #include <ctime>
 
-
 #define MAXLINEBUF 100
 #define INFINITY 4294967295
 using std::vector;
@@ -24,16 +23,18 @@ using std::list;
 using std::priority_queue;
 using std::string;
 
-//STRUCTS
+
 struct node 
 {
 	unsigned int id;
 	unsigned int cost;
-	
+	unsigned int p;
+		
 	node(int _id, int _cost)
 	{
 		id = _id;
 		cost = _cost;	
+		p = 0;
 	}  		
 };
 
@@ -43,8 +44,7 @@ struct compare
         {return i.cost > j.cost;}
 };
 
-//HELPER FUNCTIONS
-unsigned FindLink(unsigned start, unsigned endIndex, vector<node> S, vector<unsigned int> pred);
+unsigned FindLink(unsigned start, unsigned endIndex, vector<node> S);
 
 int main(int argc, char* argv[])
 {
@@ -52,7 +52,7 @@ int main(int argc, char* argv[])
 	char* filename;
 	int sourceNode;
 		
-	//CHECK FOR CORRECT USAGE
+	//check for correct usage
 	if (argc < 3)
 	{	
 		std::cerr << "\nUsage:  linkstate <input-file> <source node>\n" << "\nPlease enter a valid filename and source node.\n" << std::endl;
@@ -63,10 +63,10 @@ int main(int argc, char* argv[])
 		sourceNode = atoi(argv[2]);
 	}
 	
-	//START TIMER
+	//start timer
 	clock_t timer = clock();
 	
-	//READ INPUT FILE
+	//Read input file
 	FILE *file;
 	char line[MAXLINEBUF];
 	int numberOfNodes;
@@ -76,7 +76,7 @@ int main(int argc, char* argv[])
 	char* next;
 	
 	
-	//OPEN FILE FOR READING
+	//open file for reading
 	file = fopen(filename, "r");
 	
 	//Get the first line which contains the number of nodes
@@ -136,11 +136,10 @@ int main(int argc, char* argv[])
 		visited.at(i) = false;
 	}
 	
-	//START LINKSTATE ALGORITHM
+	//start linkstate algorithm
 	vector<node> S;
 	
-	#ifdef DEBUG
-	//-------------FOR DEBUGGING-----------------------
+	//FOR DEBUGGING
 	std::cout << std::setw(5) << "Step";
 	for(int i = 1; i <= numberOfNodes; ++i){
 		std::ostringstream oss;
@@ -150,13 +149,18 @@ int main(int argc, char* argv[])
 			std::cout << std::setw(15) << output;
 	}
 	std::cout << "\n";
-	//-------------FOR DEBUGGING-----------------------
-	#endif
-	
+
 	int count = 0;
 	while(!Q.empty()){
 		node u = Q.top();
 		Q.pop();
+		//printf("\nPopping %u\n",u.id);
+		
+		
+			//~ for(int i=1; i <=numberOfNodes; ++i){
+				//~ bool x = visited.at(i);
+				//~ printf("%d-%d, ",i,x);
+			//~ }
 		
 		for (list<node>::iterator iNode = graph[u.id].begin(); iNode != graph[u.id].end(); ++iNode)
 		{	
@@ -166,58 +170,61 @@ int main(int argc, char* argv[])
 					distance[iNode->id] = distance[u.id] + iNode->cost;
 					node x(iNode->id, distance[iNode->id] );
 					predecessor.at(iNode->id) = u.id;
+					//printf("Pushing %u\n",x.id);
 					Q.push(x);											
 				}									
 			}		
 		}
 		
 			
-		if(!visited.at(u.id)){	
-			S.push_back(u);
-			visited.at(u.id) = true;
 			
-			#ifdef DEBUG
-			//-------------FOR DEBUGGING-----------------------
-			std::cout << std::setw(5) << count;
-			for(int i = 1; i <= numberOfNodes; ++i){
-				std::ostringstream dist, pred;
-				dist << distance.at(i);
-				pred << predecessor.at(i);
-				string output = dist.str() + "," + pred.str();
-				if(i != sourceNode)
-					if(visited.at(i))
-						std::cout << std::setw(15) << "-";
+			
+			
+		if(!visited.at(u.id)){	
+		S.push_back(u);
+		visited.at(u.id) = true;
+		//FOR DEBUGGING
+		std::cout << std::setw(5) << count;
+		for(int i = 1; i <= numberOfNodes; ++i){
+			std::ostringstream dist, pred;
+			dist << distance.at(i);
+			pred << predecessor.at(i);
+			string output = dist.str() + "," + pred.str();
+			if(i != sourceNode)
+				if(visited.at(i))
+					std::cout << std::setw(15) << "-";
+				else
+					if(distance.at(i)==INFINITY)
+						std::cout << std::setw(15) << "INFINITY";
 					else
-						if(distance.at(i)==INFINITY)
-							std::cout << std::setw(15) << "INFINITY";
-						else
-							std::cout << std::setw(15) << output;
-			}
-			std::cout << "\n";
-			++count;
-			//-------------FOR DEBUGGING-----------------------
-			#endif
+						std::cout << std::setw(15) << output;
+		}
+		std::cout << "\n";
+		++count;
+			
+		//printf("\tStoring %u\n",u.id);
 		}		
 	}
 	
 	
 	
-	//STOP TIMER
+	//stop timer
 	timer = clock() - timer;
 	float elapsedTime = ((float)timer)*1000/CLOCKS_PER_SEC;
 	
-	//OUTPUT RESULTS
+	//output results
+
 	printf("\n%.3f milliseconds to compute the least-cost path from node %d.\n\n", elapsedTime, sourceNode);
 	
-	//~ std::cout << std::setw(15) << "Destination" << std::setw(15) << "Link" << std::endl;
+	std::cout << std::setw(15) << "Destination" << std::setw(15) << "Link" << std::endl;
 	
-	//~ for(int i = 0; i < S.size(); ++i){
-		//~ std::cout << std::setw(15) << S.at(i).id
-				//~ << std::setw(15) <<  "(" <<  sourceNode << ", " << FindLink(sourceNode, S.at(i).id, S, predecessor)
-				//~ << std::endl;
-	//~ }
+	for(int i = 0; i < S.size(); ++i){
+		std::cout << std::setw(15) << S.at(i).id
+				<< std::setw(15) <<  "(" <<  sourceNode << ", " << FindLink(sourceNode, S.at(i).id, S)
+				<< std::endl;
+		//printf("Node %u's predecessor is %u.\n",S.at(i).id, S.at(i).p);
+	}
 	
-	//PRINT SHORTEST PATH
 	//~ for(int i =0; i < S.size(); ++i){
 		//~ std::cout << S.at(i).id;
 		//~ if(i != S.size()-1)
@@ -230,15 +237,15 @@ int main(int argc, char* argv[])
 	return EXIT_SUCCESS;
 }
 
-unsigned FindLink(unsigned start, unsigned endIndex, vector<node> S, vector<unsigned int> pred)
+unsigned FindLink(unsigned start, unsigned endIndex, vector<node> S)
 {
 	unsigned p = INFINITY;
 	unsigned z = INFINITY;
 	
 		for(int i =endIndex; p != start; --i )
 		{
-			p = pred.at(i);
-			z = pred.at(i+1);
+			p = S[i].p;
+			z = S[i+1].p;
 		}
 		
 		
