@@ -19,6 +19,7 @@
 
 #define MAXLINEBUF 100
 #define INFINITY 2147483647
+using std::ifstream;
 using std::vector;
 using std::list;
 using std::priority_queue;
@@ -44,7 +45,6 @@ struct compare
 };
 
 //HELPER FUNCTIONS
-unsigned NextHop(unsigned start, unsigned endIndex, vector<node> S, vector<unsigned int> pred);
 void PrintGraphEdges(list<node> g[], int size);
 void PrintShortestPath(vector<node> S);
 void PrintForwardingTable(int sourceNode, vector<node> S, vector<unsigned>  pred);
@@ -70,45 +70,23 @@ int main(int argc, char* argv[])
 	clock_t timer = clock();
 	
 	//READ INPUT FILE
-	FILE *file;
-	char line[MAXLINEBUF];
+	ifstream file;
+	file.open(filename);
 	int numberOfNodes;
-	unsigned int source;
-	unsigned int dest;
-	unsigned int cost;
-	char* next;
-	
-	
-	//OPEN FILE FOR READING
-	file = fopen(filename, "r");
-	
+	int source, dest, cost;	
 	//Get the first line which contains the number of nodes
-	fgets(line,MAXLINEBUF, file);
-	numberOfNodes = atoi(line);
-	
+	file >> numberOfNodes;
 	
 	//read the rest of the file and create the graph
 	list<node> graph[numberOfNodes+1];
-	while(fgets(line,MAXLINEBUF, file))
-	{
-		for (int i = 0;  i < strlen(line); ++i) 
-		{
-			strtok(line, " ");
-			source = atoi(line);
-			
-			next = (char*)strtok(NULL, " ");
-			dest = atoi(next);
-			
-			next = (char*)strtok(NULL, " ");
-			cost = atoi(next);
-			if((cost != 0) && (cost != INFINITY))
-			{
-				graph[source].push_back(node(dest,cost));
-			}
-		}
+	while(!file.eof()){
+		file >> source >> dest >> cost;
+		if((cost != 0) && (cost != INFINITY)){
+			graph[source].push_back(node(dest,cost));
+		}		
 	}
-	fclose(file);
-	
+	file.close();
+		
 	//PRINT ALL OF THE EDGES
 	//PrintGraphEdges(graph, numberOfNodes);
 	
@@ -133,9 +111,6 @@ int main(int argc, char* argv[])
 		
 		visited.at(i) = false;
 	}
-	
-	
-	
 	
 	#ifdef DEBUG
 	//-------------FOR DEBUGGING-----------------------
@@ -207,9 +182,8 @@ int main(int argc, char* argv[])
 	float elapsedTime = ((float)timer)*1000/CLOCKS_PER_SEC;
 	
 	//OUTPUT RESULTS
-	printf("\n%.3f milliseconds to compute the least-cost path from node %d.\n\n", elapsedTime, sourceNode);
 	PrintForwardingTable(sourceNode, S, predecessor);
-
+	printf("\nIt took %.2f milliseconds to compute the least-cost path from node %d to the %d other nodes.\n\n", elapsedTime, sourceNode, numberOfNodes-1);
 	//print predecessor list
 	//~ for(unsigned int i = 1; i <= numberOfNodes;++i){
 		//~ if(i !=sourceNode)
@@ -265,20 +239,4 @@ void PrintGraphEdges(list<node> g[], int size){
 		}
 		
 	}
-}
-
-
-unsigned NextHop(unsigned start, unsigned endIndex, vector<node> S, vector<unsigned int> pred)
-{
-	//~ unsigned p = INFINITY;
-	//~ unsigned z = INFINITY;
-		int i =endIndex;
-		while(i != start)
-		{
-			i = pred.at(i);
-		}
-		
-		
-	return i;
-	
 }

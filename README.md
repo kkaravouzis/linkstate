@@ -10,7 +10,7 @@ time from the point of reading the file to the end of the least-cost path comput
 The program is written in c++ but composed in one file in an attempt to improve the speed of computation.
 
 The makefile will compile main.cpp and link dependencies.   
-The makefile has two options:  make or make debug.  make debug will compile additional code to display additional information as described below.
+The makefile has two options:  make or make debug.  make debug will compile optional code to display additional information as described below.
 
 The target executable is linkstate.  It takes 2 argurements:  the sample input file and and source node (represented by an integer value).
 	Example:  ./linkstate sampleinput 10
