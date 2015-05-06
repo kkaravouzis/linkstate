@@ -197,7 +197,7 @@ int main(int argc, char* argv[])
 	
 	return EXIT_SUCCESS;
 }
-
+//Output forwarding table as the result of Dijkstra's  algorithm.
 void PrintForwardingTable(int sourceNode, vector<node> S, vector<unsigned>  pred){
 	std::cout << std::setw(15) << "Destination" << std::setw(15) << "Link" << std::endl;
 	
@@ -207,6 +207,7 @@ void PrintForwardingTable(int sourceNode, vector<node> S, vector<unsigned>  pred
 		std::ostringstream source, next;
 		source << sourceNode;
 		
+		//Step througth predecessor list to source in order to find the next hop
 		while(p != sourceNode){
 			current = p;
 			p = pred.at(current);
@@ -220,6 +221,7 @@ void PrintForwardingTable(int sourceNode, vector<node> S, vector<unsigned>  pred
 				<< std::endl;
 	}
 }
+//Output's the shortest path from source to all other nodes in graph
 void PrintShortestPath(vector<node> S){
 	for(int i =0; i < S.size(); ++i){
 		std::cout << S.at(i).id;
@@ -229,6 +231,8 @@ void PrintShortestPath(vector<node> S){
 			std::cout<< "\n" << std::endl;
 	}
 }
+
+//Output's the graph edges (FOR DEBUGGING PURPOSES ONLY)
 void PrintGraphEdges(list<node> g[], int size){
 	std::cout << "Printing Edges" << std::endl;
 	for (int i = 1; i <= size; ++i  ) {
