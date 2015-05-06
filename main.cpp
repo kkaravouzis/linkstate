@@ -18,7 +18,7 @@
 
 
 #define MAXLINEBUF 100
-#define INFINITY 4294967295
+#define INFINITY 2147483647
 using std::vector;
 using std::list;
 using std::priority_queue;
@@ -44,7 +44,10 @@ struct compare
 };
 
 //HELPER FUNCTIONS
-unsigned FindLink(unsigned start, unsigned endIndex, vector<node> S, vector<unsigned int> pred);
+unsigned NextHop(unsigned start, unsigned endIndex, vector<node> S, vector<unsigned int> pred);
+void PrintGraphEdges(list<node> g[], int size);
+void PrintShortestPath(vector<node> S);
+void PrintForwardingTable(int sourceNode, vector<node> S, vector<unsigned>  pred);
 
 int main(int argc, char* argv[])
 {
@@ -107,20 +110,15 @@ int main(int argc, char* argv[])
 	fclose(file);
 	
 	//PRINT ALL OF THE EDGES
-	//~ for (int i = 1; i <= numberOfNodes; ++i  ) {
-		//~ for (list<node>::iterator iNode = graph[i].begin(); iNode != graph[i].end(); ++iNode  )
-		//~ {
-			//~ std::cout << "There is an edge going from " << i << " to " << iNode->id;
-			//~ std::cout << " with a weight of " << iNode->cost << std::endl;
-		//~ }
-		
-	//~ }
+	//PrintGraphEdges(graph, numberOfNodes);
+	
 	
 	//Create priority queue and initialize
 	vector<unsigned> distance(numberOfNodes+1);
 	vector<unsigned>  predecessor(numberOfNodes+1);
 	vector<bool> visited(numberOfNodes + 1);
 	priority_queue<node, vector<node>, compare> Q;
+	vector<node> S;
 	
 	for (int i = 1; i <= numberOfNodes; ++i  ) {
 		
@@ -136,11 +134,12 @@ int main(int argc, char* argv[])
 		visited.at(i) = false;
 	}
 	
-	//START LINKSTATE ALGORITHM
-	vector<node> S;
+	
+	
 	
 	#ifdef DEBUG
 	//-------------FOR DEBUGGING-----------------------
+	//Print Table Headers
 	std::cout << std::setw(5) << "Step";
 	for(int i = 1; i <= numberOfNodes; ++i){
 		std::ostringstream oss;
@@ -153,6 +152,7 @@ int main(int argc, char* argv[])
 	//-------------FOR DEBUGGING-----------------------
 	#endif
 	
+	//START LINKSTATE ALGORITHM
 	int count = 0;
 	while(!Q.empty()){
 		node u = Q.top();
@@ -208,40 +208,77 @@ int main(int argc, char* argv[])
 	
 	//OUTPUT RESULTS
 	printf("\n%.3f milliseconds to compute the least-cost path from node %d.\n\n", elapsedTime, sourceNode);
-	
-	//~ std::cout << std::setw(15) << "Destination" << std::setw(15) << "Link" << std::endl;
-	
-	//~ for(int i = 0; i < S.size(); ++i){
-		//~ std::cout << std::setw(15) << S.at(i).id
-				//~ << std::setw(15) <<  "(" <<  sourceNode << ", " << FindLink(sourceNode, S.at(i).id, S, predecessor)
-				//~ << std::endl;
+	PrintForwardingTable(sourceNode, S, predecessor);
+
+	//print predecessor list
+	//~ for(unsigned int i = 1; i <= numberOfNodes;++i){
+		//~ if(i !=sourceNode)
+			//~ printf("%u's predecessor is %u.\n",i,predecessor.at(i));
 	//~ }
 	
+	#ifdef DEBUG
 	//PRINT SHORTEST PATH
-	//~ for(int i =0; i < S.size(); ++i){
-		//~ std::cout << S.at(i).id;
-		//~ if(i != S.size()-1)
-			//~ std::cout << "->";
-		//~ else
-			//~ std::cout<< "\n" << std::endl;
-	//~ }
-	
+	PrintShortestPath(S);
+	#endif
 	
 	return EXIT_SUCCESS;
 }
 
-unsigned FindLink(unsigned start, unsigned endIndex, vector<node> S, vector<unsigned int> pred)
-{
-	unsigned p = INFINITY;
-	unsigned z = INFINITY;
+void PrintForwardingTable(int sourceNode, vector<node> S, vector<unsigned>  pred){
+	std::cout << std::setw(15) << "Destination" << std::setw(15) << "Link" << std::endl;
 	
-		for(int i =endIndex; p != start; --i )
+	for(int i = 1; i < S.size(); ++i){
+		unsigned int current = S.at(i).id;
+		unsigned int p = pred.at(current);
+		std::ostringstream source, next;
+		source << sourceNode;
+		
+		while(p != sourceNode){
+			current = p;
+			p = pred.at(current);
+		}
+		
+		next << current;
+		string output = "(" + source.str()+ "," + next.str() + ")";
+		
+		std::cout << std::setw(15) << S.at(i).id
+				<< std::setw(15) <<  output
+				<< std::endl;
+	}
+}
+void PrintShortestPath(vector<node> S){
+	for(int i =0; i < S.size(); ++i){
+		std::cout << S.at(i).id;
+		if(i != S.size()-1)
+			std::cout << "->";
+		else
+			std::cout<< "\n" << std::endl;
+	}
+}
+void PrintGraphEdges(list<node> g[], int size){
+	std::cout << "Printing Edges" << std::endl;
+	for (int i = 1; i <= size; ++i  ) {
+		for (list<node>::iterator iNode = g[i].begin(); iNode != g[i].end(); ++iNode  )
 		{
-			p = pred.at(i);
-			z = pred.at(i+1);
+			std::cout << "There is an edge going from " << i << " to " << iNode->id;
+			std::cout << " with a weight of " << iNode->cost << std::endl;
+		}
+		
+	}
+}
+
+
+unsigned NextHop(unsigned start, unsigned endIndex, vector<node> S, vector<unsigned int> pred)
+{
+	//~ unsigned p = INFINITY;
+	//~ unsigned z = INFINITY;
+		int i =endIndex;
+		while(i != start)
+		{
+			i = pred.at(i);
 		}
 		
 		
-	return z;
+	return i;
 	
 }
